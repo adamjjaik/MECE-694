@@ -1,0 +1,35 @@
+function [J, gradJ] = Nonlinear_ComputeCostwGrad(x, y, theta)
+%  J = Linear_ComputeCost(x, y, theta) computes the
+% (1) objective function using theta as the parameter and
+% (2) value of gradient uinsg theta and x
+
+
+% Initialize some useful values
+M = length(y); % number of observations
+
+% You need to return the following variables correctly
+J = 0;
+gradJ = zeros(length(theta),1);
+
+
+
+x1 = x(:,2);
+x2 = x(:,3);
+
+z1 = x1 .* sin(4*x1);
+z2 = x2 .* sin(2*x2);
+
+Z = [ones(M,1), z1, z2];
+
+f_hat = Z * theta;
+errors = f_hat - y;
+J = (1/(2*M)) * sum(errors.^2);
+
+if nargout > 1 % gradient required
+    gradJ = (1/M) * Z' * errors;
+end
+
+
+% ******************************************
+
+end

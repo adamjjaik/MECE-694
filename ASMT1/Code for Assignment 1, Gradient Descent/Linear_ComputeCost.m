@@ -12,7 +12,14 @@ J = 0;
 % Instructions: 
 % (1) Calculate the objective function for the given x, y, and theta
 
-% J = ...;
+% Build a matrix that consists of all 1's in the first column
+% and the x values in the second
+% Copmute f_hat = theta0 + theta1*x by multiplying the matricies
+f_hat = x * theta;
+% Copmute the difference from the actual value for each point
+errors = f_hat - y;
+% Objective function J using mean-squared-error
+J = (1 / (2 * M)) * sum(errors.^2);
 
 % ******************************************
 
