@@ -1,0 +1,6 @@
+Method,NeighPres_k10,Runtime_s
+Laplacian Score (top features),0.0784666666666671,0.3679891
+PCA,0.1311,0.1030612
+KPCA Gaussian (\sigma = 0.5 x median),0.087366666666667,0.230406
+KPCA Laplacian (\sigma = 1.0 x median),0.0934000000000002,0.2133876
+t-SNE (perplexity 30),0.460666666666667,3.1338058

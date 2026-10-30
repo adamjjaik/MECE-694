@@ -14,7 +14,6 @@ function [MappedData]= KernelPCA_Incomplete(Input, Kernel, d)
 % "Parameter" is Kernel Parameter for Each Kernel Type
 
 % Compute the Kernel Matrix
-%%% You Should Complete This Function
 K = ComputeKernelMatrix(Input, Kernel); 
 
 % Center Kernel Matrix
@@ -41,12 +40,20 @@ function [K] = ComputeKernelMatrix(X, Kernel)
 % Input Data: M by p Matrix (M: # of Observations, p: # of Features)
 % Kernel: Structure Including "Type" and "Parameter"
 
+
+% computing once to be used in cases below
+sx = sum(X.^2, 2);             % M by 1 (squared norm of each observation)
+Dist2 = sx + sx' - 2*(X*X');   % M by M matrix of squared distances
+Dist2 = max(Dist2, 0);         % rounding error can create tiny negatives
+Dist  = sqrt(Dist2);           % M by M matrix of distances
+
+
 switch Kernel.Type
     case 'Linear'
         K = (X*X').^Kernel.Parameter;
         
-    case 'Polynomial' % Write Code for Polynomial Kernel
-        % K = ;
+    case 'Polynomial' % K = (xi'*xj + c)^d, with c = 1 and degree d = Kernel.Parameter
+        K = (X*X' + 1).^Kernel.Parameter;
         
     case 'Gaussian'
         sx = sum(X.^2, 2);
@@ -54,23 +61,26 @@ switch Kernel.Type
         xy = 2*(X*X');
         K = exp(((xy-sx)-sy')./Kernel.Parameter^2);
         
-    case 'HypTan' % Write Code for Hyperbolic Tangent Kernel
-        % K = ;
+    case 'HypTan' % K = tanh(alpha*xi'*xj + c), with alpha = Kernel.Parameter and c = 1
+        K = tanh(Kernel.Parameter*(X*X') + 1);
         
-    case 'Laplacian' % Write Code for Laplacian Kernel
-        % K = ;
+    case 'Laplacian' % K = exp(-||xi - xj|| / sigma), with sigma = Kernel.Parameter
+        K = exp(-Dist./Kernel.Parameter);
         
-    case 'RationalQuadratic' % Write Code for Rational Quadratic Kernel
-        % K = ;
+    case 'RationalQuadratic' % K = 1 - ||xi - xj||^2 / (||xi - xj||^2 + c), with c = Kernel.Parameter
+       K = 1 - Dist2./(Dist2 + Kernel.Parameter);
         
-    case 'MultiQuadric' % Write Code for MultiQuadric Kernel
-        % K = ;
+    case 'MultiQuadric' % K = sqrt(||xi - xj||^2 + c^2), with c = Kernel.Parameter
+        K = sqrt(Dist2 + Kernel.Parameter^2);
         
-    case 'Power' % Write Code for Power Kernel
-        % K = ;
+    case 'Power' % K = -||xi - xj||^d, with d = Kernel.Parameter
+        K = -Dist.^Kernel.Parameter;
         
-    case 'Log' % Write Code for Log Kernel   
-    % K = ;
+    case 'Log' % K = -log(||xi - xj||^d + 1), with d = Kernel.Parameter   
+        K = -log(Dist.^Kernel.Parameter + 1);
+
+    otherwise % error message if kernel type is not listed
+        error('Unknown kernel type: %s', Kernel.Type);
     
 end
 

@@ -1,0 +1,110 @@
+%% HAR_Pipeline.m: Feature Selection & Dimension Reduction Pipeline (UCI HAR)
+% Run top to bottom. All settings live in the CONFIG block below.
+clc; clear; close all
+
+%% CONFIG
+ScriptDir             = fileparts(mfilename('fullpath'));          % folder containing this script
+Config.DataDir        = fullfile(ScriptDir, 'UCI HAR Dataset');    % path to the extracted dataset
+Config.OutDir         = fullfile(ScriptDir, 'results');            % figures/tables are saved here
+Config.Seed           = 1;                                         % random seed (reported in the README)
+Config.NSub           = 3000;                                      % balanced subsample size (500 per activity)
+Config.NumActivities  = 6;                                         % number of activity classes
+rng(Config.Seed);
+if ~exist(Config.OutDir, 'dir'), mkdir(Config.OutDir); end
+
+%% STAGE 1: Data ingestion & sanity checks
+tic
+HAR = LoadHAR(Config.DataDir);
+fprintf('Loaded in %.1f s\n', toc);
+[n, p] = size(HAR.X);
+
+% Basic properties
+fprintf('\n--- Dataset properties ---\n');
+fprintf('Samples: %d   Features: %d\n', n, p);
+fprintf('All features numeric (double): %d\n', isa(HAR.X, 'double'));
+fprintf('Missing values (NaN): %d\n', nnz(isnan(HAR.X)));
+fprintf('Value range: [%.3f, %.3f]\n', min(HAR.X(:)), max(HAR.X(:)));
+fprintf('Constant features (zero std): %d\n', nnz(std(HAR.X) == 0));
+fprintf('Duplicate feature names: %d\n', numel(HAR.FeatureNames) - numel(unique(HAR.FeatureNames)));
+
+% Outliers: fraction of entries more than 3 scaled MADs from the feature median
+OutlierFrac = mean(isoutlier(HAR.X), 'all');
+fprintf('Entries flagged as outliers (3 scaled MAD): %.2f%%\n', 100*OutlierFrac);
+
+% Label distribution (labels are used only for colouring plots)
+Counts = accumarray(HAR.y, 1);
+LabelTable = table(HAR.ActivityNames, Counts, 100*Counts/n, ...
+    'VariableNames', {'Activity', 'Count', 'Percent'});
+disp(LabelTable)
+writetable(LabelTable, fullfile(Config.OutDir, 'LabelDistribution.csv'));
+
+%% STAGE 2: Preprocessing
+% No missing values were found, so no imputation is required.
+% Standardize each feature to zero mean and unit variance. Distance- and
+% variance-based methods (PCA, KPCA, Laplacian Score, t-SNE) otherwise give
+% more weight to features with larger spread, regardless of relevance.
+FeatStd = std(HAR.X);
+fprintf('\nFeature std before standardizing: min %.4f, max %.4f (ratio %.0f)\n', ...
+        min(FeatStd), max(FeatStd), max(FeatStd)/min(FeatStd));
+
+[Xz, Prep.Mu, Prep.Sigma] = zscore(HAR.X);     % Xz = (X - Mu) ./ Sigma
+fprintf('After standardizing: max |mean| = %.2e, std range = [%.3f, %.3f]\n', ...
+        max(abs(mean(Xz))), min(std(Xz)), max(std(Xz)));
+
+% Save the transformation so it can be reused on new data (best practice)
+save(fullfile(Config.OutDir, 'Preprocessing.mat'), 'Prep');
+
+%% Balanced subsample (shared by all methods for plots and metrics)
+NPerClass = Config.NSub / Config.NumActivities;
+SubIdx = [];
+for c = 1:Config.NumActivities
+    idx = find(HAR.y == c);
+    SubIdx = [SubIdx; idx(randperm(numel(idx), NPerClass))];   %#ok<AGROW>
+end
+XzSub = Xz(SubIdx, :);
+ySub  = HAR.y(SubIdx);
+fprintf('\nSubsample: %d points (%d per activity)\n', numel(SubIdx), NPerClass);
+
+Emb     = struct();   % embeddings from each method (rows = subsample points)
+Runtime = struct();   % run time of each method (s)
+
+%% STAGE 3: Feature selection - Laplacian Score (unsupervised filter)
+% Scores each feature by how well it preserves the local neighbourhood
+% structure of the data; no labels are used. Larger score = more important.
+tic
+[IdxLS, ScoreLS] = fsulaplacian(XzSub);
+Runtime.LaplacianScore = toc;
+
+TopN = 10;
+fprintf('\nLaplacian Score: top %d features (%.2f s)\n', TopN, Runtime.LaplacianScore);
+for k = 1:TopN
+    j = IdxLS(k);
+    fprintf('  %2d. [%3d] %-35s score %.4f\n', k, j, HAR.FeatureNames{j}, ScoreLS(j));
+end
+
+figure(1); clf
+bar(ScoreLS(IdxLS)); grid on
+xlabel('Feature rank'); ylabel('Laplacian Score');
+title('Laplacian Score of all 561 features (sorted)');
+saveas(gcf, fullfile(Config.OutDir, 'LaplacianScores.png'));
+
+Emb.LS = XzSub(:, IdxLS(1:3));        % top 3 original features (use 1:2 for 2D plots)
+
+%% STAGE 4a: Dimension reduction - PCA (linear)
+tic
+[CoeffPCA, ScorePCA, ~, ~, ExplPCA] = pca(Xz);   % fit on the FULL standardized dataset
+Runtime.PCA = toc;
+CumExpl = cumsum(ExplPCA);
+fprintf('\nPCA (%.2f s): PC1-3 explain %.1f%%, %.1f%%, %.1f%% (cumulative %.1f%%)\n', ...
+        Runtime.PCA, ExplPCA(1:3), CumExpl(3));
+fprintf('Components needed for 90%% / 95%% variance: %d / %d\n', ...
+        find(CumExpl >= 90, 1), find(CumExpl >= 95, 1));
+
+figure(2); clf
+plot(1:100, CumExpl(1:100), '-', 'LineWidth', 1.5); grid on
+yline(90, '--', '90%'); yline(95, '--', '95%');
+xlabel('Number of principal components'); ylabel('Cumulative explained variance (%)');
+title('PCA cumulative explained variance (standardized HAR data)');
+saveas(gcf, fullfile(Config.OutDir, 'PCA_ExplainedVariance.png'));
+
+Emb.PCA = ScorePCA(SubIdx, 1:3);      % same subsample points, first 3 components

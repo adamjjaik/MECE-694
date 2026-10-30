@@ -22,15 +22,30 @@ Error = []; % You Should Find/Return Error Values
 Input = Data.Input;
 
 % Evaluate ANN Error Using One Feature at a Time
-
+NumFeatures = size(Input, 1);
+Error = zeros(1, NumFeatures);
+for j = 1:NumFeatures
+    Selected = zeros(1, NumFeatures); % binary vector
+    Selected(j) = 1; % only j-th element = 1
+    % Train/test the ANN with this single feature
+    % Objective returns a scalar error
+    Error(j) = Objective(Selected); 
+end
 
 % STEP 2: Sort Obtained Errors
+% Sort from lowest to highest error,
+% order(1) is the feature with the lowest error,
+% use "~" to ignore the sorted values so Error stays
+% indexed by feature number as the function header requires
+[~, order] = sort(Error, 'ascend');
 
 
 % STEP 3: 
 % Select First d Features With Minimum Error
+Index = zeros(1, NumFeatures);
 
 % Create a Binary output Named "Index"
+Index(order(1:d)) = 1;
 
 end
 
