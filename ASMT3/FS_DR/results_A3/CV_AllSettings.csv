@@ -1,0 +1,45 @@
+Classifier,Setting,CV_Acc_Mean,CV_Acc_Std
+Linear SVM,"C = 0.1",96.15,0.41
+Linear SVM,"C = 1",96.26,0.51
+Linear SVM,"C = 10",96.39,0.57
+RBF SVM,"C = 0.1, gamma = 1/m",81.46,1.08
+RBF SVM,"C = 0.1, gamma = 3/m",28.96,1.47
+RBF SVM,"C = 0.1, gamma = 10/m",18.88,0
+RBF SVM,"C = 1, gamma = 1/m",91.99,0.53
+RBF SVM,"C = 1, gamma = 3/m",69.16,0.69
+RBF SVM,"C = 1, gamma = 10/m",21.29,0.32
+RBF SVM,"C = 10, gamma = 1/m",92.56,0.15
+RBF SVM,"C = 10, gamma = 3/m",71.05,1.1
+RBF SVM,"C = 10, gamma = 10/m",23.35,0.55
+k-NN,"k = 3, Euclidean",94.5,0.61
+k-NN,"k = 3, Manhattan",94.43,0.42
+k-NN,"k = 5, Euclidean",94.48,0.4
+k-NN,"k = 5, Manhattan",94.6,0.56
+k-NN,"k = 11, Euclidean",94.09,0.17
+k-NN,"k = 11, Manhattan",94.11,0.47
+Decision Tree,"max depth = 5, min leaf = 1",79.06,0.78
+Decision Tree,"max depth = 5, min leaf = 5",79.05,0.76
+Decision Tree,"max depth = 5, min leaf = 10",78.98,0.94
+Decision Tree,"max depth = 10, min leaf = 1",80.47,0.68
+Decision Tree,"max depth = 10, min leaf = 5",81.31,0.8
+Decision Tree,"max depth = 10, min leaf = 10",81.34,0.35
+Decision Tree,"max depth = 20, min leaf = 1",80.47,0.68
+Decision Tree,"max depth = 20, min leaf = 5",81.31,0.8
+Decision Tree,"max depth = 20, min leaf = 10",81.34,0.35
+Random Forest,"n trees = 200, max features = 34",92.1,0.16
+Random Forest,"n trees = 200, max features = 103",90.06,0.54
+Random Forest,"n trees = 400, max features = 34",91.84,0.29
+Random Forest,"n trees = 400, max features = 103",89.94,0.16
+Shallow MLP,"[64], relu, lr = 0.001, 50 epochs, batch 128",96.29,0.36
+Shallow MLP,"[64], tanh, lr = 0.001, 50 epochs, batch 128",96.88,0.34
+Shallow MLP,"[128], relu, lr = 0.001, 50 epochs, batch 128",96.96,0.51
+Shallow MLP,"[128], tanh, lr = 0.001, 50 epochs, batch 128",96.88,0.52
+Shallow MLP,"[256], relu, lr = 0.001, 50 epochs, batch 128",97.1,0.4
+Shallow MLP,"[256], tanh, lr = 0.001, 50 epochs, batch 128",97.06,0.4
+Deep MLP,"[128 64], relu, lr = 0.001, 50 epochs, batch 128",96.99,0.42
+Deep MLP,"[128 64], tanh, lr = 0.001, 50 epochs, batch 128",97.1,0.65
+Deep MLP,"[256 128 64], relu, lr = 0.001, 50 epochs, batch 128",96.89,0.63
+Deep MLP,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128",97.14,0.55
+Deep MLP + L2,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128, L2 = 0.0001",97.18,0.51
+Deep MLP + L2,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128, L2 = 0.001",96.68,0.73
+Deep MLP + L2,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128, L2 = 0.01",96.46,0.57

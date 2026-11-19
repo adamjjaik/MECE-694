@@ -1,0 +1,9 @@
+Classifier,SelectedSetting,CV_Acc,Test_Acc,Test_Sens,Test_Spec
+Linear SVM,"C = 10",96.39,97.18,97.31,99.43
+RBF SVM,"C = 10, gamma = 1/m",92.56,94.37,94.52,98.89
+k-NN,"k = 5, Manhattan",94.6,96.6,96.63,99.31
+Decision Tree,"max depth = 10, min leaf = 10",81.34,83.92,83.77,96.78
+Random Forest,"n trees = 200, max features = 34",92.1,92.81,92.79,98.56
+Shallow MLP,"[256], relu, lr = 0.001, 50 epochs, batch 128",97.1,97.91,98.03,99.58
+Deep MLP,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128",97.14,97.81,97.92,99.56
+Deep MLP + L2,"[256 128 64], tanh, lr = 0.001, 50 epochs, batch 128, L2 = 0.0001",97.18,98.06,98.16,99.61
